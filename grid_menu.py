@@ -95,11 +95,11 @@ class GridMenu:
       textpos = text.get_rect(midleft=(self.left + 15, self.top + 118))
       screen.blit(text, textpos)
 
-      text = font.render("3/6: 30/60 minute turn, both players", 1, (240,240,240), background)
+      text = font.render("4/5/6: 30/45/60 minute turn, both players", 1, (240,240,240), background)
       textpos = text.get_rect(midleft=(self.left + 15, self.top + 136))
       screen.blit(text, textpos)
 
-      text = font.render("8/9: 30/60 minute break, both players", 1, (240,240,240), background)
+      text = font.render("7/8/9/0: 30/60/90/120 minute break, both players", 1, (240,240,240), background)
       textpos = text.get_rect(midleft=(self.left + 15, self.top + 154))
       screen.blit(text, textpos)
 

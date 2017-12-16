@@ -2,7 +2,7 @@ import pygame, sys, os, datetime, settings, player, gradient, inputbox
 
 from pygame.locals import *
 
-# use of reminder deemed controversial, annoying. chenged to soft tone.  better.
+# use of reminder deemed controversial, annoying. changed to soft tone.  better.
 REMINDER_INTERVAL = 150
 # add penalty counter - idea: add 2x reminder time to break
 PENALTY_MULTIPLIER = 2
@@ -35,12 +35,12 @@ class App():
       
       pygame.init()
       list = pygame.display.list_modes()
-      # print list
+      print list
 
-      index = list.index((1024, 768))
+      index = list.index((1280, 720))
       print list, index, list[index]
-      self.screen_width = 1024
-      self.screen_height = 768
+      self.screen_width = 1280
+      self.screen_height = 720
       error = pygame.display.set_mode((self.screen_width, self.screen_height))
       # print error
       # print
@@ -69,9 +69,11 @@ class App():
 
       # initialize players
       self.Player1 = player.Player('Martin', "sounds/player-1.wav", self.screen, 1, 2, "1", self.settings)
+      self.Player1.reset()
       self.Player1.update()
 
       self.Player2 = player.Player('Reed', "sounds/player-2.wav", self.screen, 2, 2, "2", self.settings)
+      self.Player2.reset()
       self.Player2.update()
 
    def input(self, events):
@@ -97,31 +99,35 @@ class App():
                CurrentPlayer.AddPause(0)
                pygame.display.flip()
             # 3 and 6 set turns of 30 and 60 minutes
-            elif ((event.key == K_3)):
-               print ("Key 3")
-               if(self.Player1.getTotalTimeLeft() < (30 * 60)):
-                  self.Player1.AddTotal(30)
+            elif ((event.key == K_4)):
+               print ("Key 4")
                self.Player1.AddTurn(30)
-               if(self.Player2.getTotalTimeLeft() < (30 * 60)):
-                  self.Player2.AddTotal(30)
                self.Player2.AddTurn(30)
+            elif ((event.key == K_5)):
+               print ("Key 5")
+               self.Player1.AddTurn(45)
+               self.Player2.AddTurn(45)
             elif (event.key == (K_6)):
                print ("Key 6")
-               if(self.Player1.getTotalTimeLeft() < (60 * 60)):
-                  self.Player1.AddTotal(60)
                self.Player1.AddTurn(60)
-               if(self.Player2.getTotalTimeLeft() < (60 * 60)):
-                  self.Player2.AddTotal(60)
                self.Player2.AddTurn(60)
             # 8 and 6 set breaks of 30 and 60 minutes
-            elif ((event.key == K_8)):
-               print ("Key 8")
+            elif ((event.key == K_7)):
+               print ("Key 7")
                self.Player1.AddBreak(30)
                self.Player2.AddBreak(30)
-            elif (event.key == (K_9)):
-               print ("Key 9")
+            elif ((event.key == K_8)):
+               print ("Key 8")
                self.Player1.AddBreak(60)
                self.Player2.AddBreak(60)
+            elif (event.key == (K_9)):
+               print ("Key 9")
+               self.Player1.AddBreak(90)
+               self.Player2.AddBreak(90)
+            elif (event.key == (K_0)):
+               print ("Key 0")
+               self.Player1.AddBreak(120)
+               self.Player2.AddBreak(120)
 # handle "Y" key - modal response, wish I could figure out a better way to handle this!
             elif (event.key == K_y):
                #print ("Key Y")
@@ -257,7 +263,7 @@ class App():
          self.showTime()
          end = datetime.datetime.now()
 
-         print end - start
+         # print end - start
          
          pygame.display.flip()
 

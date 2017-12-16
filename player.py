@@ -3,9 +3,9 @@ import pygame, sys, os, audio_queue, timer_rect, grid_menu, settings
 from pygame.locals import *
 
 # of minutes for each type of timer rectangle per player
-MAXTOTAL = 180
+MAXTOTAL = 360
 MAXTURN = 60
-MAXBREAK = 120
+MAXBREAK = 180
 # use of reminder deemed controversial, annoying
 REMINDER_INTERVAL = 120
 # add penalty counter - idea: add 2x reminder time to break
@@ -54,9 +54,9 @@ class Player(object):
       self.reminders = 0            # how many times the reminder has gone off
 
       self.Menu = grid_menu.GridMenu(self.left + self.width/10, rect_height + 140, input, settings)
-      self.Menu.AddLine("Add to Total", self.AddTotal, [60, 30, 15, 10, 5]) 
-      self.Menu.AddLine("Set Turn", self.AddTurn, [60, 45, 30, 15, 10, 5, 1] )
-      self.Menu.AddLine("Set Break", self.AddBreak, [120, 90, 60, 45, 30, 15, 10, 5] )
+#      self.Menu.AddLine("Add to Total", self.AddTotal, [60, 30, 15, 10, 5]) 
+      self.Menu.AddLine("Set Turn", self.AddTurn, [60, 45, 30, 15, 1] )
+      self.Menu.AddLine("Set Break", self.AddBreak, [180, 150, 120, 90, 60, 30, 1] )
       self.Menu.AddLine("Start/Pause", self.AddPause, [0])   
 
       self.name_sound = audio_queue.qSound(pygame.mixer.Sound(name_wave), input)
@@ -87,11 +87,7 @@ class Player(object):
 
    def showMenu(self, screen):
       self.Menu.showMenu(screen)
-
-   def getTotalTimeLeft(self):
-      return self.TotalRect.time_left
    
-      
    def clearStatus(self):
       status_fg = (0,0,0)
       status_bg = (0, 0, 0)
@@ -104,8 +100,8 @@ class Player(object):
 
    # reset clears all counters
    def reset(self):
-      self.TotalRect.time_left = 0
-      self.TotalRect.time = 0
+      self.TotalRect.time_left = MAXTOTAL * 60
+      self.TotalRect.time = MAXTOTAL * 60
       self.TurnRect.time_left = 0
       self.TurnRect.time = 0
       self.BreakRect.time_left = 0
@@ -133,23 +129,15 @@ class Player(object):
       self.TotalRect.drawit(self.surface)
       self.TurnRect.drawit(self.surface)
       self.BreakRect.drawit(self.surface)
-
-   def AddTotal(self, minutes):
-      if(self.TotalRect.time < ((181 - minutes) * 60)):
-         self.TotalRect.time += minutes * 60
-         self.TotalRect.time_left += minutes *60
-         self.update()
-      
+     
    def AddTurn(self, minutes):
-      if self.TotalRect.time_left == 0:
-         self.status("Add to Total first!")
-      elif self.BreakRect.time_left > 0:
+      if self.BreakRect.time_left > 0:
          self.status("Wait until break is over!")
          return
       else:
 #     TimeStarted not currently used
 #         self.TimeStarted = datetime.datetime.now()
-         self.TurnRect.time = min(self.TotalRect.time_left, minutes * 60)
+         self.TurnRect.time = minutes * 60
          self.TurnRect.time_left = self.TurnRect.time
          self.TurnRect.reminder = -1      # set to -1 so we can determine that turn just ended, vs. in reminder loop
          self.increment = 1
@@ -171,25 +159,21 @@ class Player(object):
    def AddPause(self, minutes):
       # print self.name, self.TotalRect.time_left
       self.reminders = 0
-      if self.TotalRect.time_left > 0:
-         if self.BreakRect.time_left > 0:
-            self.status("Wait until break is over! ")
-            return
-         if self.increment == 0:
-            if self.TurnRect.time_left > 0:
-               self.AddBreak(0)
-               self.showName(BLUE)
-               self.status(" Taking turn! ")
-               self.increment = 1
-            else:
-                self.status(" No turn defined! ")
+      if self.BreakRect.time_left > 0:
+         self.status("Wait until break is over! ")
+         return
+      if self.increment == 0:
+         if self.TurnRect.time_left > 0:
+            self.AddBreak(0)
+            self.showName(BLUE)
+            self.status(" Taking turn! ")
+            self.increment = 1
          else:
-            self.increment = 0
-            self.status(" Paused! ")
-            self.showName(DRK_GREEN)
+             self.status(" No turn defined! ")
       else:
-         self.status( "  Add time!  ")
          self.increment = 0
+         self.status(" Paused! ")
+         self.showName(DRK_GREEN)
       return
 
    # this is where we keep track of global time relationships within the game timer
@@ -197,55 +181,45 @@ class Player(object):
    # 
    def dec(self):
       self.TotalRect.decrement(self.increment)
-      if self.TotalRect.time_left > 0:
-         self.TurnRect.decrement(self.increment)
-         if (self.TurnRect.time_left == 299):
-               print self.name, "Five minute warning!"
-               self.name_sound.PlayIt()
-               self.five_minute_warning_sound.PlayIt()
-               self.showName(GREEN)
-           
-         if (self.TurnRect.time_left == 119):
-               print self.name, "Two minute warning!"
-               self.name_sound.PlayIt()
-               self.two_minute_warning_sound.PlayIt()
-               self.showName(YELLOW)
-           
-         elif self.TurnRect.time_left == 0:
-            # print self.TurnRect.reminder unless in pause mode
-            if(self.increment > 0):
-               # flash name
-               if ((self.TurnRect.reminder % 2) == 0):
-                  self.showName(RED)
-               else:
-                  self.showName(BLUE)
-               # manage reminder beep                  
-               if(self.TurnRect.reminder == -1):   # it's set to -1 when turn starts, so turn just ended: say name + "turn over"
-                  print self.name, "Turn over!"
-                  self.name_sound.PlayIt()
-                  self.turn_over_sound.PlayIt()
-                  self.status("Turn over!")
-                  self.showName(RED)
-                  self.TurnRect.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
-               elif(self.TurnRect.reminder == 0): # now we're counting down reminders, just play a bing sound less annoying y'know 8^)
-                  self.bing_sound.PlayIt()
-                  self.TurnRect.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
-                  self.reminders += 1
-                  self.showReminders()
-               else:
-                  self.TurnRect.reminder -= 1            
-      else:    # total time is over
-         self.TotalRect.reminder = max(0, self.TotalRect.reminder - 1)
-         # print "inc:", self.increment, "reminder: ", self.TotalRect.reminder
-         if ((self.increment <> 0) & (self.TotalRect.reminder == 0)):
-            print self.name, "Time up!"
+      print "TotalRect.time = " + str(self.TotalRect.time)
+      print "TotalRect.time_left = " + str(self.TotalRect.time_left)
+      
+      self.TurnRect.decrement(self.increment)
+      if (self.TurnRect.time_left == 299):
+            print self.name, "Five minute warning!"
             self.name_sound.PlayIt()
-            self.time_up_sound.PlayIt()   
-            self.status("Time up!")
-            self.showName(RED)
-            self.TotalRect.reminder = REMINDER_INTERVAL * SPEEDUP  # time up reminder every 60 seconds
-            self.reminders += 1
-            self.showReminders()
+            self.five_minute_warning_sound.PlayIt()
+            self.showName(GREEN)
+        
+      if (self.TurnRect.time_left == 119):
+            print self.name, "Two minute warning!"
+            self.name_sound.PlayIt()
+            self.two_minute_warning_sound.PlayIt()
+            self.showName(YELLOW)
+        
+      elif self.TurnRect.time_left == 0:
+         # print self.TurnRect.reminder unless in pause mode
+         if(self.increment > 0):
+            # flash name
+            if ((self.TurnRect.reminder % 2) == 0):
+               self.showName(RED)
+            else:
+               self.showName(BLUE)
+            # manage reminder beep                  
+            if(self.TurnRect.reminder == -1):   # it's set to -1 when turn starts, so turn just ended: say name + "turn over"
+               print self.name, "Turn over!"
+               self.name_sound.PlayIt()
+               self.turn_over_sound.PlayIt()
+               self.status("Turn over!")
+               self.showName(RED)
+               self.TurnRect.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
+            elif(self.TurnRect.reminder == 0): # now we're counting down reminders, just play a bing sound less annoying y'know 8^)
+               self.bing_sound.PlayIt()
+               self.TurnRect.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
+               self.reminders += 1
+               self.showReminders()
+            else:
+               self.TurnRect.reminder -= 1            
 # process break time
 # break over announcement will not repeat, currently
 # break reminder is not used

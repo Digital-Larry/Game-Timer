@@ -25,7 +25,7 @@ class TimerRect:
 
    def decrement(self, inc):
       self.time_left = max(0, self.time_left - inc)
-      
+
    def timeFormat(self, time_value, mode=0):
       hours = time_value/3600
       minutes = (time_value % 3600)/60
