@@ -36,7 +36,7 @@ class App():
       pygame.init()
       list = pygame.display.list_modes()
       print list
-
+      
       index = list.index((1280, 720))
       print list, index, list[index]
       self.screen_width = 1280
@@ -53,7 +53,8 @@ class App():
          fontIndex = 5
          self.font = fontList[fontIndex]
 
-      self.settings = settings.Settings("freesans")
+      self.settings = settings.Settings("dejavusans")
+      self.appWarning = ""
       QuitWarning = 0
       CurrentPlayer = 0
       # =========================================================================================================
@@ -139,9 +140,9 @@ class App():
                   self.Player2.reset()
                   #
                   ResetWarning = 0
+                  self.clearAppWarning()
             elif event.key == K_ESCAPE:
-               self.saveWarningArea("Quit? (Y/N)")
-               self.appWarning("Quit? (Y/N)")
+               self.setAppWarning("Quit? (Y/N)")
                CurrentPlayer = 0
                QuitWarning = 1
             elif event.key == K_PLUS:           
@@ -149,7 +150,7 @@ class App():
                self.font = fontList[fontIndex]
                print "plus", fontIndex, self.font
             elif event.key == K_r:
-               self.appWarning( "Reset? (Y/N)")
+               self.setAppWarning( "Reset? (Y/N)")
                CurrentPlayer = 0
                ResetWarning = 1
             elif event.key == K_q:
@@ -200,28 +201,24 @@ class App():
       # print self.name, textpos, textpos.centerx, textpos.centery
   #    self.screen.blit(text, textpos)  
 
-   def appWarning(self, string):
-      font = pygame.font.SysFont(self.settings.get_font(), 32)
-      fg = (220, 250, 235)
-#      fg = (110, 210, 160)
-      text = font.render('{:^16}'.format(string), 1, fg, (235,10,10))
-      textpos = text.get_rect()
-      # print self.name, textpos, textpos.centerx
-      textpos.centerx = self.screen_width/2
-      textpos.centery = self.screen_height/2
-      # print self.name, textpos, textpos.centerx, textpos.centery
-      self.screen.blit(text, textpos)  
+   def setAppWarning(self, string):
+      self.appWarning = string
+
+   def showAppWarning(self):
+      if(self.appWarning != ""):
+         font = pygame.font.SysFont(self.settings.get_font(), 32)
+         fg = (220, 250, 235)
+   #      fg = (110, 210, 160)
+         text = font.render('{:^16}'.format(self.appWarning), 1, fg, (235,10,10))
+         textpos = text.get_rect()
+         # print self.name, textpos, textpos.centerx
+         textpos.centerx = self.screen_width/2
+         textpos.centery = self.screen_height/2
+         # print self.name, textpos, textpos.centerx, textpos.centery
+         self.screen.blit(text, textpos)  
 
    def clearAppWarning(self):
-      font = pygame.font.SysFont(self.settings.get_font(), 32)
-      fg = (220, 250, 235)
-#      fg = (110, 210, 160)
-      text = font.render('{:^16}'.format(" "), 1, fg, (235,10,10))
-      textpos = text.get_rect()
-      # print self.name, textpos, textpos.centerx
-      textpos.centerx = self.screen_width/2
-      textpos.centery = self.screen_height/2
-      self.screen.blit(self.saveScreen, textpos, textpos);
+      self.appWarning = ""
       
    def showTime(self):
       font = pygame.font.SysFont(self.settings.get_font(), 52)
@@ -262,7 +259,8 @@ class App():
          self.Player2.dec()
          self.showTime()
          end = datetime.datetime.now()
-
+         self.showAppWarning()
+         
          # print end - start
          
          pygame.display.flip()

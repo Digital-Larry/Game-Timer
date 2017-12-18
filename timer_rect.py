@@ -17,14 +17,8 @@ class TimerRect:
       # print height, top
       self.rect = (left + (width/20) * (slot * 3 + 1), height/3, width/7, height)
       self.name = name
-      self.time = 0
-      self.time_left = 0
-      self.reminder = 0
       self.font = settings.get_font()
       # print self.name, self.rect
-
-   def decrement(self, inc):
-      self.time_left = max(0, self.time_left - inc)
 
    def timeFormat(self, time_value, mode=0):
       hours = time_value/3600
@@ -43,9 +37,15 @@ class TimerRect:
 
       return time_string
 
-   def drawit(self, screen):
+# redefined drawIt to just draw colored rectangles in certain places
+# as the functionality of Total, Turn, and Break rects is different
+# top and bottom should be # of minutes
+
+   def drawit(self, screen, top, bottom, color):
+#      print "Drawit top, bottom, color:"
+#      print top, bottom, color
       # draw and fill outline in blue
-      pygame.draw.rect(screen, (30,30,170), self.rect, 0)
+#      pygame.draw.rect(screen, (30,30,170), self.rect, 0)
 
       # box = Rect(self.rect)
       # this gradient fill appears to take too long, slowing the timer down
@@ -53,38 +53,32 @@ class TimerRect:
 
       # print self.time, self.time_left
       
-      if (self.time > 0):
-      # draw remaining time in green
-         color = (0, 255, 0)
-         y1 = ((self.maximum - self.time) * self.rect[3])/self.maximum
-         y2 = ((self.maximum - self.time_left) * self.rect[3])/self.maximum
-
-         draw_green = Rect(self.rect[0], self.rect[1] + y2, self.rect[2], self.rect[3] - y2)
+      y1 = top * (self.rect[3])/self.maximum
+      y2 = bottom * (self.rect[3])/self.maximum
+#      print "rect, maximum"
+#      print self.rect, self.maximum
+#      print "==================="
+      draw_box = Rect(self.rect[0], self.rect[1] + self.rect[3] - y2, self.rect[2], y2 - y1)
          
-         # print "y1 =", y1, "y2 = ", y2
-         # print "Draw green:", draw_green 
+#      print "y1 =", y1, "y2 = ", y2
+#      print "draw_box = ", draw_box
+      
 #     replace this line with a gradient call
-#         pygame.draw.rect(screen, color, draw_green, 0)
-         gradient.fill_gradient(screen, color, (0,123,0), draw_green, False, True)
+#      pygame.draw.rect(screen, color, draw_green, 0)
+      gradient.fill_gradient(screen, color, color, draw_box, False, True)
 
 #        bgd = pygame.Surface(screen.get_size())
 #        bgd.blit( gradients.vertical(bgd.get_size(), (227, 200, 53, 255), (157, 116, 2, 255)),(0,0))
 #        bgd.fill((128,)*3)
 
-         if self.time != self.time_left:
-         # draw from top down in red to represent used time
-            color = (255, 0, 0)
-            draw_red = Rect(self.rect[0], self.rect[1] + y1, self.rect[2], (y2 - y1) + 1)
-            gradient.fill_gradient(screen, color, (225,120,120), draw_red, False, True)
-  #          pygame.draw.rect(screen, color, draw_red, 0)
-            # print "Draw red:", draw_red
-
-     # draw outline in dark green
-      color = (0, 150, 10)
-      pygame.draw.rect(screen, color, self.rect, 3)
+   # draw outline in dark green
+   def drawOutline(self, screen):
+      color = (0, 150, 150)
+      pygame.draw.rect(screen, color, self.rect, 4)
 
 
 # now draw the time markers - helps if maximum is a nice increment of 6
+   def drawTimes(self, screen):
 
       time = self.maximum/6
       font = pygame.font.SysFont(self.font, 28)
@@ -96,13 +90,6 @@ class TimerRect:
          screen.fill(TIMEBACKGROUND, textpos)
          screen.blit(text, textpos)
          time = time + self.maximum/6
-       
-
-      font = pygame.font.SysFont(self.font, 32)
-      text = font.render(self.timeFormat(self.time_left, 0), 1, (220, 250, 235))
-      textpos = text.get_rect(center=(self.rect[0] + self.rect[2]/2, self.rect[1] + self.rect[3] + 65))
-      screen.fill(TIMEBACKGROUND, textpos)
-      screen.blit(text, textpos)
 
 #      Total time detail readout, seems unnecessary         
 #      text = font.render(self.timeFormat(self.time, 0), 1, (220, 250, 235))
