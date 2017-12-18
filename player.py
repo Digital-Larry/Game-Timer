@@ -163,8 +163,8 @@ class Player(object):
       
       
    def updateTotal(self):
-      print "TotalRect max and Player total time:"
-      print self.TotalRect.maximum, self.totalTime
+#      print "TotalRect max and Player total time:"
+#      print self.TotalRect.maximum, self.totalTime
       self.TotalRect.drawit(self.surface, self.TotalRect.maximum, self.totalTime, (0,0,250))
       if (self.totalTime > TOTALWARNINGLEVEL):
           self.TotalRect.drawit(self.surface, 0, TOTALWARNINGLEVEL, (0,250,0))
@@ -178,8 +178,8 @@ class Player(object):
 
      
    def updateTurn(self):
-      print "TurnRect max and Player turn time, turn time left:"
-      print self.TurnRect.maximum, self.turnTime, self.turnTimeLeft
+#      print "TurnRect max and Player turn time, turn time left:"
+#      print self.TurnRect.maximum, self.turnTime, self.turnTimeLeft
 #      self.TurnRect.drawit(self.surface, self.TurnRect.maximum, self.turnTimeLeft, (0,0,250))
       self.TurnRect.drawit(self.surface, self.TurnRect.maximum, self.turnTime, (0,0,250))
       self.TurnRect.drawit(self.surface, self.turnTime, self.turnTimeLeft, (250,0,0))
@@ -189,12 +189,9 @@ class Player(object):
       self.showTime(self.TurnRect, self.turnTimeLeft)
          
    def updateBreak(self):
-      print "BreakRect max and Player break time left:"
-      print self.BreakRect.maximum, self.breakTimeLeft
       self.BreakRect.drawit(self.surface, self.BreakRect.maximum, self.breakTime, (0,0,215))
       self.BreakRect.drawit(self.surface, self.breakTime, self.breakTimeLeft, (0,215,0))
       self.BreakRect.drawit(self.surface, self.breakTimeLeft, 0, (215,0,0))
-#      self.BreakRect.drawit(self.surface, 20* 60, 10 * 60, (240,5,150))
       self.BreakRect.drawOutline(self.surface)
       self.BreakRect.drawTimes(self.surface)
       self.showTime(self.BreakRect, self.breakTimeLeft)
@@ -250,10 +247,10 @@ class Player(object):
    # 
    def dec(self):
       self.totalTime += self.increment
-      print "Total time = " + str(self.totalTime)
+#      print "Total time = " + str(self.totalTime)
       
       self.turnTimeLeft -= self.increment
-      print "Turn time left = " + str(self.turnTimeLeft)
+#      print "Turn time left = " + str(self.turnTimeLeft)
       
       if (self.turnTimeLeft == 299):
             print self.name, "Five minute warning!"
