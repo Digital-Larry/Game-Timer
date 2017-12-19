@@ -37,7 +37,7 @@ class App():
       list = pygame.display.list_modes()
       print list
       
-      index = list.index((1024, 768))
+      index = list.index((1824, 984))
       print list, index, list[index]
       self.screen_width = 1024
       self.screen_height = 768

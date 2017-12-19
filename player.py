@@ -121,6 +121,7 @@ class Player(object):
    # reset clears all counters
    def reset(self):
       self.increment = 0
+      self.reminder = -1
       self.BreakIncrement = 0
       self.reminders = 0            # how many times the reminder has gone off
       self.totalTime = 0
@@ -246,10 +247,12 @@ class Player(object):
    # such as the relationship between total time and turn time and break time
    # 
    def dec(self):
-      self.totalTime += self.increment
-#      print "Total time = " + str(self.totalTime)
-      
-      self.turnTimeLeft -= self.increment
+      if(self.reminder > 0):
+         self.totalTime += self.increment         
+      if(self.turnTimeLeft > 0):
+         self.totalTime += self.increment
+#      print "Total time = " + str(self.totalTime)     
+         self.turnTimeLeft -= self.increment
 #      print "Turn time left = " + str(self.turnTimeLeft)
       
       if (self.turnTimeLeft == 299):
@@ -285,8 +288,10 @@ class Player(object):
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
                self.reminders += 1
                self.showReminders()
+               print self.name, "reminder sound:", self.reminder
             else:
                self.reminder -= 1            
+               print self.name, "reminder countdown:", self.reminder
 # process break time
 # break over announcement will not repeat, currently
 # break reminder is not used

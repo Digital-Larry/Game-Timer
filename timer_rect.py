@@ -42,34 +42,12 @@ class TimerRect:
 # top and bottom should be # of minutes
 
    def drawit(self, screen, top, bottom, color):
-#      print "Drawit top, bottom, color:"
-#      print top, bottom, color
-      # draw and fill outline in blue
-#      pygame.draw.rect(screen, (30,30,170), self.rect, 0)
-
-      # box = Rect(self.rect)
-      # this gradient fill appears to take too long, slowing the timer down
-      # gradient.fill_gradient(screen, (50,50, 250), (150,150,2520), box, False, True)
-
-      # print self.time, self.time_left
       
       y1 = top * (self.rect[3])/self.maximum
       y2 = bottom * (self.rect[3])/self.maximum
-#      print "rect, maximum"
-#      print self.rect, self.maximum
-#      print "==================="
       draw_box = Rect(self.rect[0], self.rect[1] + self.rect[3] - y2, self.rect[2], y2 - y1)
          
-#      print "y1 =", y1, "y2 = ", y2
-#      print "draw_box = ", draw_box
-      
-#     replace this line with a gradient call
-#      pygame.draw.rect(screen, color, draw_green, 0)
-      gradient.fill_gradient(screen, color, color, draw_box, False, True)
-
-#        bgd = pygame.Surface(screen.get_size())
-#        bgd.blit( gradients.vertical(bgd.get_size(), (227, 200, 53, 255), (157, 116, 2, 255)),(0,0))
-#        bgd.fill((128,)*3)
+      gradient.fill_gradient(screen, color, (0.66 * color[0],0.66 * color[1], 0.66 * color[2]), draw_box, False, True)
 
    # draw outline in dark green
    def drawOutline(self, screen):
