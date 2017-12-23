@@ -62,13 +62,12 @@ class Player(object):
 
       self.name_sound = audio_queue.qSound(pygame.mixer.Sound(name_wave), input)
       self.turn_over_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/turn-over.wav"), input)
-      self.bing_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/bing.wav"), input)
-      self.time_up_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/time-up.wav"), input)
+      self.reminder_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/reminder.wav"), input)
+      self.time_up_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/your-turn-is-over.wav"), input)
       self.break_over_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/break-over.wav"), input)
       self.ten_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/ten-minute-warning.wav"), input)
       self.five_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/five-minute-warning.wav"), input)
       self.two_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/two-minute-warning.wav"), input)
-      self.bing_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/bing.wav"), input)
 
    def showName(self, background):
       font = pygame.font.SysFont(self.font, 52)
@@ -293,9 +292,9 @@ class Player(object):
                self.status("Turn over!")
                self.showName(RED)
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
-            elif(self.reminder == 0): # now we're counting down reminders, just play a bing sound less annoying y'know 8^)
+            elif(self.reminder == 0): # now we're counting down reminders, just play a reminder sound less annoying y'know 8^)
                self.name_sound.PlayIt()
-               self.bing_sound.PlayIt()
+               self.reminder_sound.PlayIt()
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
                self.reminders += 1
                self.showReminders()
