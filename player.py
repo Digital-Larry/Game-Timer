@@ -51,8 +51,6 @@ class Player(object):
       self.TurnRect = timer_rect.TimerRect("Turn", self.left, self.width, rect_height, MAXTURN * 60, 1, settings)
       self.BreakRect = timer_rect.TimerRect("Break", self.left, self.width, rect_height, MAXBREAK * 60, 2, settings)
 
-      self.showName(BLUE)
-
 # initialize times - these will be part of player rather than timer_rect
       self.reset()
       
@@ -67,6 +65,7 @@ class Player(object):
       self.bing_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/bing.wav"), input)
       self.time_up_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/time-up.wav"), input)
       self.break_over_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/break-over.wav"), input)
+      self.ten_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/ten-minute-warning.wav"), input)
       self.five_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/five-minute-warning.wav"), input)
       self.two_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/two-minute-warning.wav"), input)
       self.bing_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/bing.wav"), input)
@@ -153,6 +152,8 @@ class Player(object):
       self.updateTotal()
       self.updateTurn()
       self.updateBreak()
+      self.showName(BLUE)
+
 
    def showTime(self, rectToShow, timeToShow):
       # now draw time value below the rectangle
@@ -169,9 +170,12 @@ class Player(object):
       self.TotalRect.drawit(self.surface, self.TotalRect.maximum, self.totalTime, (0,0,250))
       if (self.totalTime > TOTALWARNINGLEVEL):
           self.TotalRect.drawit(self.surface, 0, TOTALWARNINGLEVEL, (0,250,0))
-          self.TotalRect.drawit(self.surface, TOTALWARNINGLEVEL, self.totalTime, (250,0,0))
+          self.TotalRect.drawit(self.surface, TOTALWARNINGLEVEL, min(MAXTOTAL * 60, self.totalTime), (250,0,0))
       else:
           self.TotalRect.drawit(self.surface, 0, self.totalTime, (0,250,0))
+
+      if (self.totalTime > MAXTOTAL * 60):
+          self.status("Time to stop!!!!")
 
       self.TotalRect.drawOutline(self.surface)
       self.TotalRect.drawTimes(self.surface)
@@ -255,6 +259,12 @@ class Player(object):
          self.turnTimeLeft -= self.increment
 #      print "Turn time left = " + str(self.turnTimeLeft)
       
+      if (self.turnTimeLeft == 599):
+            print self.name, "Ten minute warning!"
+            self.name_sound.PlayIt()
+            self.five_minute_warning_sound.PlayIt()
+            self.showName(GREEN)
+
       if (self.turnTimeLeft == 299):
             print self.name, "Five minute warning!"
             self.name_sound.PlayIt()
@@ -284,6 +294,7 @@ class Player(object):
                self.showName(RED)
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
             elif(self.reminder == 0): # now we're counting down reminders, just play a bing sound less annoying y'know 8^)
+               self.name_sound.PlayIt()
                self.bing_sound.PlayIt()
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
                self.reminders += 1
@@ -301,7 +312,7 @@ class Player(object):
          if (self.breakTimeLeft == 0):
             print self.name, "Break over!"
             self.name_sound.PlayIt()
-#	Don't play braek over sounds, maybe they won't notice
+#	Don't play break over sounds, maybe they won't notice
 #            self.break_over_sound.PlayIt()   
             self.status("Break over!")
             self.showName(BLUE)

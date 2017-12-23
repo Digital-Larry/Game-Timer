@@ -37,8 +37,8 @@ class App():
       list = pygame.display.list_modes()
       print list
       
-      index = list.index((1824, 984))
-      print list, index, list[index]
+#      index = list.index((1824, 984))
+#      print list, index, list[index]
       self.screen_width = 1024
       self.screen_height = 768
       error = pygame.display.set_mode((self.screen_width, self.screen_height))
@@ -54,6 +54,7 @@ class App():
          self.font = fontList[fontIndex]
 
       self.settings = settings.Settings("dejavusans")
+      self.screen = pygame.display.get_surface() 
       self.appWarning = ""
       QuitWarning = 0
       CurrentPlayer = 0
@@ -62,20 +63,20 @@ class App():
       window = pygame.display.set_mode((self.screen_width, self.screen_height))
       pygame.display.set_caption('Video Game Timer')
 
-      self.screen = pygame.display.get_surface() 
-      gradient.fill_gradient(self.screen, (250,250,250), (0,0,180))
-
-      self.saveScreen = pygame.display.get_surface()
-#      self.screen.fill((0, 0, 0))
-
       # initialize players
       self.Player1 = player.Player('Martin', "sounds/player-1.wav", self.screen, 1, 2, "1", self.settings)
       self.Player1.reset()
-      self.Player1.update()
 
       self.Player2 = player.Player('Reed', "sounds/player-2.wav", self.screen, 2, 2, "2", self.settings)
       self.Player2.reset()
+
+      self.clear_background()
+
+   def clear_background(self):
+      gradient.fill_gradient(self.screen, (250,250,250), (0,0,180))
+      self.Player1.update()
       self.Player2.update()
+
 
    def input(self, events):
       global QuitWarning
@@ -153,8 +154,7 @@ class App():
                self.setAppWarning( "Reset? (Y/N)")
                CurrentPlayer = 0
                ResetWarning = 1
-            elif event.key == K_q:
-               inputbox.ask(self.screen, "Quit? (Y/N)")
+               
             if CurrentPlayer != 0:
                CurrentPlayer.MenuKey(event.key)
                CurrentPlayer.showMenu(self.screen)
@@ -186,21 +186,6 @@ class App():
 # A Rect can also be passed as the destination and the topleft corner of the rectangle will be
 # used as the position for the blit. The size of the destination rectangle does not effect the blit.
 
-   def saveWarningArea(self, string):
-      font = pygame.font.SysFont(self.settings.get_font(), 32)
-      fg = (220, 250, 235)
-#      fg = (110, 210, 160)
-      text = font.render('{:^16}'.format(string), 1, fg, (235,10,10))
-      textpos = text.get_rect()
-      # print self.name, textpos, textpos.centerx
-      textpos.centerx = self.screen_width/2
-      textpos.centery = self.screen_height/2
-
-      self.saveScreen.blit(self.screen, textpos, textpos)
-      
-      # print self.name, textpos, textpos.centerx, textpos.centery
-  #    self.screen.blit(text, textpos)  
-
    def setAppWarning(self, string):
       self.appWarning = string
 
@@ -219,6 +204,7 @@ class App():
 
    def clearAppWarning(self):
       self.appWarning = ""
+      self.clear_background()
       
    def showTime(self):
       font = pygame.font.SysFont(self.settings.get_font(), 52)
