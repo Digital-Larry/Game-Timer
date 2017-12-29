@@ -41,6 +41,8 @@ class Player(object):
       self.screen_height = surface.get_height()   # height of the screen1
       self.name = name
       self.left = self.width * (slot - 1)/totalSlots
+      self.statusString = ""
+      self.statusColor = GREEN
       # print self.width, rect_height, self.left
 
       self.font = settings.get_font()
@@ -56,18 +58,20 @@ class Player(object):
       
       self.Menu = grid_menu.GridMenu(self.left + self.width/10, rect_height + 140, input, settings)
 #      self.Menu.AddLine("Add to Total", self.AddTotal, [60, 30, 15, 10, 5]) 
-      self.Menu.AddLine("Set Turn", self.AddTurn, [60, 45, 30, 15, 1] )
-      self.Menu.AddLine("Set Break", self.AddBreak, [180, 150, 120, 90, 60, 30, 1] )
+      self.Menu.AddLine("Set Turn", self.AddTurn, [60, 45, 30, 15, 10, 5, 1] )
+      self.Menu.AddLine("Set Break", self.AddBreak, [180, 150, 120, 90, 60, 45, 30, 1] )
       self.Menu.AddLine("Start/Pause", self.AddPause, [0])   
 
       self.name_sound = audio_queue.qSound(pygame.mixer.Sound(name_wave), input)
-      self.turn_over_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/turn-over.wav"), input)
+      self.turn_over_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/your-turn-is-over.wav"), input)
       self.reminder_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/reminder.wav"), input)
-      self.time_up_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/your-turn-is-over.wav"), input)
       self.break_over_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/break-over.wav"), input)
       self.ten_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/ten-minute-warning.wav"), input)
+      self.ten_minute_message_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/ten-minutes-remaining.wav"), input)
       self.five_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/five-minute-warning.wav"), input)
+      self.five_minute_message_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/five-minutes-until-break.wav"), input)
       self.two_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/two-minute-warning.wav"), input)
+      self.two_minute_message_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/two-minutes-until-break.wav"), input)
 
    def showName(self, background):
       font = pygame.font.SysFont(self.font, 52)
@@ -132,11 +136,14 @@ class Player(object):
       self.clearStatus()
       self.showName(BLUE)
 
-   def status(self, string):
+   def setStatus(self, string):
+      self.statusString = string
+
+   def showStatus(self):
       status_fg = (252, 252, 235)
       status_bg = (0, 175, 75)
       font = pygame.font.SysFont(self.font, 32)
-      text = font.render('{:^30}'.format(string), 1, status_fg, status_bg)
+      text = font.render('{:^30}'.format(self.statusString), 1, status_fg, status_bg)
       textpos = text.get_rect()
       # print self.name, textpos, textpos.centerx
       textpos.centerx = self.left + self.width/4
@@ -145,14 +152,15 @@ class Player(object):
       self.surface.blit(text, textpos)
 
    def showReminders(self):
-      self.status('Reminder # {:^}'.format(self.reminders))
+      self.setStatus('Reminder # {:^}'.format(self.reminders))
       
    def update(self):
       self.updateTotal()
       self.updateTurn()
       self.updateBreak()
       self.showName(BLUE)
-
+      self.showStatus()
+#
 
    def showTime(self, rectToShow, timeToShow):
       # now draw time value below the rectangle
@@ -203,7 +211,7 @@ class Player(object):
         
    def AddTurn(self, minutes):
       if self.breakTimeLeft > 0:
-         self.status("Wait until break is over!")
+         self.setStatus("Wait until break is over!")
          return
       else:
 #     TimeStarted not currently used
@@ -211,38 +219,40 @@ class Player(object):
          self.turnTime = minutes * 60
          self.turnTimeLeft = self.turnTime
          self.reminder = -1      # set to -1 so we can determine that turn just ended, vs. in reminder loop
+         self.reminders = 0
          self.increment = 1
          if self.increment > 0:
-            self.status(" Taking turn! ")
+            self.setStatus(" Taking turn! ")
             self.showName(BLUE)
       self.update()
       
    def AddBreak(self, minutes):
       self.breakTime = minutes * 60
       self.breakTimeLeft = minutes *60
+      self.reminders = 0
       self.increment = 0
       self.BreakIncrement = 1
       if minutes > 0:
-         self.status(" Taking a break! ")
+         self.setStatus(" Taking a break! ")
          self.showName((250,0,0))
       self.update()
       
    def AddPause(self, minutes):
-      self.reminders = 0
       if self.breakTimeLeft > 0:
-         self.status("Wait until break is over! ")
+         self.setStatus("Wait until break is over! ")
          return
       if self.increment == 0:
          if self.turnTimeLeft > 0:
+            self.reminders = 0
             self.AddBreak(0)
             self.showName(BLUE)
-            self.status(" Taking turn! ")
+            self.setStatus(" Taking turn! ")
             self.increment = 1
          else:
-             self.status(" No turn defined! ")
+             self.showReminders()
       else:
          self.increment = 0
-         self.status(" Paused! ")
+         self.setStatus(" Paused! ")
          self.showName(DRK_GREEN)
       return
 
@@ -261,19 +271,22 @@ class Player(object):
       if (self.turnTimeLeft == 599):
             print self.name, "Ten minute warning!"
             self.name_sound.PlayIt()
-            self.five_minute_warning_sound.PlayIt()
+            self.ten_minute_warning_sound.PlayIt()
+            self.ten_minute_message_sound.PlayIt()
             self.showName(GREEN)
 
       if (self.turnTimeLeft == 299):
             print self.name, "Five minute warning!"
             self.name_sound.PlayIt()
             self.five_minute_warning_sound.PlayIt()
+            self.five_minute_message_sound.PlayIt()
             self.showName(GREEN)
         
       if (self.turnTimeLeft == 119):
             print self.name, "Two minute warning!"
             self.name_sound.PlayIt()
             self.two_minute_warning_sound.PlayIt()
+            self.two_minute_message_sound.PlayIt()
             self.showName(YELLOW)
         
       elif self.turnTimeLeft == 0:
@@ -289,7 +302,7 @@ class Player(object):
                print self.name, "Turn over!"
                self.name_sound.PlayIt()
                self.turn_over_sound.PlayIt()
-               self.status("Turn over!")
+               self.setStatus("Turn over!")
                self.showName(RED)
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
             elif(self.reminder == 0): # now we're counting down reminders, just play a reminder sound less annoying y'know 8^)
@@ -298,10 +311,10 @@ class Player(object):
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
                self.reminders += 1
                self.showReminders()
-               print self.name, "reminder sound:", self.reminder
+               print self.name, "reminders:", self.reminders
             else:
                self.reminder -= 1            
-               print self.name, "reminder countdown:", self.reminder
+               # print self.name, "reminder countdown:", self.reminder
 # process break time
 # break over announcement will not repeat, currently
 # break reminder is not used
@@ -313,13 +326,13 @@ class Player(object):
             self.name_sound.PlayIt()
 #	Don't play break over sounds, maybe they won't notice
 #            self.break_over_sound.PlayIt()   
-            self.status("Break over!")
+            self.setStatus("Break over!")
             self.showName(BLUE)
             self.BreakIncrement = 0
             self.breakTime = 0    # clear the break rect, since break is over
 #            self.BreakRect.reminder = 30 * SPEEDUP
 #         else:
-#            self.status("Break over!")
+#            self.setStatus("Break over!")
 #            self.BreakRect.reminder -= 1
 
       self.update()

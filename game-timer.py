@@ -244,12 +244,11 @@ class App():
          self.Player1.dec()
          self.Player2.dec()
          self.showTime()
-         end = datetime.datetime.now()
          self.showAppWarning()
          
-         # print end - start
-         
+         # print end - start        
          pygame.display.flip()
+         end = datetime.datetime.now()
 
       pygame.exit()
 

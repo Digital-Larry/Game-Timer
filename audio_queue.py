@@ -20,7 +20,7 @@ class qSound:
             # print "waiting..."   
             # self.waitloop(pygame.event.get()) 
             # print "return from waiting..."   
-      print i, "Queueing sound: "
+      print i, "Queueing sound: ", s
       x = self.SoundChannel.queue(self.sownd)
       # print x
 
