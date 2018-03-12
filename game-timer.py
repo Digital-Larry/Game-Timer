@@ -2,11 +2,6 @@ import pygame, sys, os, datetime, settings, player, gradient, inputbox
 
 from pygame.locals import *
 
-# use of reminder deemed controversial, annoying. changed to soft tone.  better.
-REMINDER_INTERVAL = 150
-# add penalty counter - idea: add 2x reminder time to break
-PENALTY_MULTIPLIER = 2
-
 RED = (220,0,0)
 DRK_RED = (180,0,0)
 PURPLE = (180,0,180)
@@ -41,6 +36,8 @@ class App():
 #      print list, index, list[index]
       self.screen_width = 1024
       self.screen_height = 768
+#      self.screen_width = 800
+#      self.screen_height = 600
       error = pygame.display.set_mode((self.screen_width, self.screen_height))
       # print error
       # print
@@ -100,6 +97,10 @@ class App():
                self.Player1.clearMenu(self.screen)
                CurrentPlayer.AddPause(0)
                pygame.display.flip()
+            elif ((event.key == K_3)):
+               print ("Key 3")
+               self.Player1.AddTurn(10)
+               self.Player2.AddTurn(10)
             # 3 and 6 set turns of 30 and 60 minutes
             elif ((event.key == K_4)):
                print ("Key 4")
@@ -222,11 +223,12 @@ class App():
 
       while True:      
          self.input(pygame.event.get())
-#         timex = pygame.time.get_ticks()
+         timex = pygame.time.get_ticks()
 # changed from using get_ticks() to datetime.now(), seems more accurate
-         d = datetime.datetime.now().second    
-#         while ((pygame.time.get_ticks() - timex) < (1000/SPEEDUP)):
-         while (datetime.datetime.now().second == d):
+         while ((pygame.time.get_ticks() - timex) < (1000/SPEEDUP)):
+
+#         d = datetime.datetime.now().second    
+#         while (datetime.datetime.now().second == d):
             self.input(pygame.event.get())
 
          start = datetime.datetime.now()

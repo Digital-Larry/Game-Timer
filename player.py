@@ -1,4 +1,4 @@
-import pygame, sys, os, audio_queue, timer_rect, grid_menu, settings
+import pygame, sys, os, audio_queue, datetime, timer_rect, grid_menu, settings
 
 from pygame.locals import *
 
@@ -9,9 +9,9 @@ MAXBREAK = 180
 # number of seconds for total above which it is shown as red
 TOTALWARNINGLEVEL = 120 * 60
 # use of reminder deemed controversial, annoying
-REMINDER_INTERVAL = 120
+REMINDER_INTERVAL = 60
 # add penalty counter - idea: add 2x reminder time to break
-PENALTY_MULTIPLIER = 2
+PENALTY_MULTIPLIER = 5
 
 RED = (220,0,0)
 DRK_RED = (180,0,0)
@@ -22,7 +22,6 @@ GREEN = (0,200,0)
 DRK_GREEN = (0,100,0)
 YELLOW = (0,200,180)
 TIMEBACKGROUND = (0, 0, 60)
-
 
 NAME_YPOS = 40
 STATUS_YPOS = 95
@@ -72,6 +71,8 @@ class Player(object):
       self.five_minute_message_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/five-minutes-until-break.wav"), input)
       self.two_minute_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/two-minute-warning.wav"), input)
       self.two_minute_message_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/two-minutes-until-break.wav"), input)
+      self.penalty_warning_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/in-two-minutes-your-break-will-be-extended.wav"), input)
+      self.penalty_message_sound = audio_queue.qSound(pygame.mixer.Sound("sounds/your-break-has-been-extended.wav"), input)
 
    def showName(self, background):
       font = pygame.font.SysFont(self.font, 52)
@@ -201,9 +202,26 @@ class Player(object):
       self.showTime(self.TurnRect, self.turnTimeLeft)
          
    def updateBreak(self):
-      self.BreakRect.drawit(self.surface, self.BreakRect.maximum, self.breakTime, (0,0,215))
-      self.BreakRect.drawit(self.surface, self.breakTime, self.breakTimeLeft, (0,215,0))
-      self.BreakRect.drawit(self.surface, self.breakTimeLeft, 0, (215,0,0))
+      self.BreakRect.drawit(self.surface, self.BreakRect.maximum, self.breakTime + self.breakTimePenalty, (0,0,215))
+
+      if(self.breakTime == 0 and self.breakTimePenalty > 0):
+#         print "breakTime, breakTimePenalty:"
+#         print self.breakTime, self.breakTimePenalty
+         
+         self.BreakRect.drawit(self.surface, self.breakTimePenalty, 0, (215,0,215))
+         
+      if(self.breakTimeLeft > self.breakTimePenalty):
+      # we need to draw a rectangle
+#         print "breakTime, breakTimePenalty, breakTimeLeft:"
+#         print self.breakTime, self.breakTimePenalty, self.breakTimeLeft
+         
+         self.BreakRect.drawit(self.surface, self.breakTime, self.breakTimeLeft, (0,215,0))
+         self.BreakRect.drawit(self.surface, self.breakTimeLeft, self.breakTimePenalty, (215,0,0))
+         self.BreakRect.drawit(self.surface, self.breakTimePenalty, 0, (215,0,215))
+      else:
+         self.BreakRect.drawit(self.surface, self.breakTime, self.breakTimeLeft, (0,215,0))
+         self.BreakRect.drawit(self.surface, self.breakTimeLeft, 0, (215,0,0))
+         
       self.BreakRect.drawOutline(self.surface)
       self.BreakRect.drawTimes(self.surface)
       self.showTime(self.BreakRect, self.breakTimeLeft)
@@ -216,10 +234,13 @@ class Player(object):
       else:
 #     TimeStarted not currently used
 #         self.TimeStarted = datetime.datetime.now()
+         d = datetime.datetime.now()
+         print d
          self.turnTime = minutes * 60
          self.turnTimeLeft = self.turnTime
          self.reminder = -1      # set to -1 so we can determine that turn just ended, vs. in reminder loop
          self.reminders = 0
+         self.breakTimePenalty = 0
          self.increment = 1
          if self.increment > 0:
             self.setStatus(" Taking turn! ")
@@ -227,8 +248,8 @@ class Player(object):
       self.update()
       
    def AddBreak(self, minutes):
-      self.breakTime = minutes * 60
-      self.breakTimeLeft = minutes *60
+      self.breakTime = minutes * 60 + self.breakTimePenalty
+      self.breakTimeLeft = minutes * 60 + self.breakTimePenalty
       self.reminders = 0
       self.increment = 0
       self.BreakIncrement = 1
@@ -306,10 +327,21 @@ class Player(object):
                self.showName(RED)
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
             elif(self.reminder == 0): # now we're counting down reminders, just play a reminder sound less annoying y'know 8^)
-               self.name_sound.PlayIt()
-               self.reminder_sound.PlayIt()
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
                self.reminders += 1
+               self.breakTimePenalty += PENALTY_MULTIPLIER * 60
+
+               if (self.reminders % 10 == 0):
+                     if( self.breakTimePenalty <= (MAXBREAK - (10 * PENALTY_MULTIPLIER)) * 60):
+                        self.name_sound.PlayIt()
+                        self.penalty_message_sound.PlayIt()
+                        self.breakTimePenalty += 22 * 60
+                     else:
+                        self.name_sound.PlayIt()
+                        self.reminder_sound.PlayIt()
+                        self.setStatus("For goodness sake!  Break time!")            
+                     print "break penalty for ", self.name, " is ", self.breakTimePenalty
+                     
                self.showReminders()
                print self.name, "reminders:", self.reminders
             else:
@@ -330,6 +362,7 @@ class Player(object):
             self.showName(BLUE)
             self.BreakIncrement = 0
             self.breakTime = 0    # clear the break rect, since break is over
+            self.breakTimePenalty = 0
 #            self.BreakRect.reminder = 30 * SPEEDUP
 #         else:
 #            self.setStatus("Break over!")

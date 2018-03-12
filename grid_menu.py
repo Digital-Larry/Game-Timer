@@ -42,6 +42,8 @@ class GridMenu:
             self.MenuSelection = 0
             self.menu_level -= 1;
       if key == K_DOWN:
+         print "self.menu_level:", self.menu_level
+         print "self.lineList[self.menu_level]:", self.lineList[self.menu_level]
          if self.menu_level < (len(self.lineList[self.menu_level])):
             self.MenuSelection = 0
             self.menu_level += 1;
