@@ -14,7 +14,7 @@ YELLOW = (0,200,180)
 STATUS_YPOS = 95
 
 # speedup factor for testing (which doesn't work)
-SPEEDUP = 1
+SPEEDUP = 10
 
 global QuitWarning
 global ResetWarning
@@ -225,10 +225,10 @@ class App():
          self.input(pygame.event.get())
          timex = pygame.time.get_ticks()
 # changed from using get_ticks() to datetime.now(), seems more accurate
-         while ((pygame.time.get_ticks() - timex) < (1000/SPEEDUP)):
+#         while ((pygame.time.get_ticks() - timex) < (1000/SPEEDUP)):
 
-#         d = datetime.datetime.now().second    
-#         while (datetime.datetime.now().second == d):
+         d = datetime.datetime.now().second    
+         while (datetime.datetime.now().second == d):
             self.input(pygame.event.get())
 
          start = datetime.datetime.now()

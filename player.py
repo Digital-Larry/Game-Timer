@@ -10,7 +10,7 @@ MAXBREAK = 180
 TOTALWARNINGLEVEL = 120 * 60
 # use of reminder deemed controversial, annoying
 REMINDER_INTERVAL = 60
-# add penalty counter - idea: add 2x reminder time to break
+# add penalty counter - idea: add 5x reminder time to break
 PENALTY_MULTIPLIER = 5
 
 RED = (220,0,0)
@@ -57,6 +57,7 @@ class Player(object):
       
       self.Menu = grid_menu.GridMenu(self.left + self.width/10, rect_height + 140, input, settings)
 #      self.Menu.AddLine("Add to Total", self.AddTotal, [60, 30, 15, 10, 5]) 
+      self.Menu.AddLine("Stop At", self.StopAt, [60, 45, 30, 15] )
       self.Menu.AddLine("Set Turn", self.AddTurn, [60, 45, 30, 15, 10, 5, 1] )
       self.Menu.AddLine("Set Break", self.AddBreak, [180, 150, 120, 90, 60, 45, 30, 1] )
       self.Menu.AddLine("Start/Pause", self.AddPause, [0])   
@@ -205,8 +206,8 @@ class Player(object):
       self.BreakRect.drawit(self.surface, self.BreakRect.maximum, self.breakTime + self.breakTimePenalty, (0,0,215))
 
       if(self.breakTime == 0 and self.breakTimePenalty > 0):
-#         print "breakTime, breakTimePenalty:"
-#         print self.breakTime, self.breakTimePenalty
+         print "breakTime, breakTimePenalty:"
+         print self.breakTime, self.breakTimePenalty
          
          self.BreakRect.drawit(self.surface, self.breakTimePenalty, 0, (215,0,215))
          
@@ -224,9 +225,21 @@ class Player(object):
          
       self.BreakRect.drawOutline(self.surface)
       self.BreakRect.drawTimes(self.surface)
-      self.showTime(self.BreakRect, self.breakTimeLeft)
+      self.showTime(self.BreakRect, self.breakTimeLeft + self.breakTimePenalty)
       return
         
+   def StopAt(self, minutes):
+      d = datetime.datetime.now()
+      minuet = d.minute
+      print d, "Minutes: ", minuet
+      if minuet > minutes:
+         turn = (60 - minuet) + minutes
+      else:
+         turn = minutes - minuet
+
+      print "Turn =", turn
+      self.AddTurn(turn)
+
    def AddTurn(self, minutes):
       if self.breakTimeLeft > 0:
          self.setStatus("Wait until break is over!")
