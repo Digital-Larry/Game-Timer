@@ -21,6 +21,7 @@ LT_BLUE = (70,100,180)
 GREEN = (0,200,0)
 DRK_GREEN = (0,100,0)
 YELLOW = (0,200,180)
+WHITE = (255, 255, 255)
 TIMEBACKGROUND = (0, 0, 60)
 
 NAME_YPOS = 40
@@ -41,7 +42,8 @@ class Player(object):
       self.name = name
       self.left = self.width * (slot - 1)/totalSlots
       self.statusString = ""
-      self.statusColor = GREEN
+      self.statusBG = GREEN
+      self.statusFG = (200, 200, 200)
       # print self.width, rect_height, self.left
 
       self.font = settings.get_font()
@@ -113,15 +115,8 @@ class Player(object):
       self.Menu.showMenu(screen)
    
    def clearStatus(self):
-      status_fg = (0,0,0)
-      status_bg = (0, 0, 0)
-      font = pygame.font.SysFont(self.font, 32)
-      text = font.render('{:^44}'.format(""), 1, status_fg, status_bg)
-      textpos = text.get_rect()
-      textpos.centerx = self.left + self.width/4
-      textpos.centery = STATUS_YPOS
-      self.surface.blit(text, textpos)
-
+      self.setStatus("Ready", WHITE, BLUE)
+      
    # reset clears all counters
    def reset(self):
       self.increment = 0
@@ -138,14 +133,15 @@ class Player(object):
       self.clearStatus()
       self.showName(BLUE)
 
-   def setStatus(self, string):
+   def setStatus(self, string, fg, bg):
       self.statusString = string
+      self.statusFG = fg
+      self.statusBG= bg
 
    def showStatus(self):
-      status_fg = (252, 252, 235)
-      status_bg = (0, 175, 75)
+#      print "Status colors: ", self.statusFG, self.statusBG
       font = pygame.font.SysFont(self.font, 32)
-      text = font.render('{:^30}'.format(self.statusString), 1, status_fg, status_bg)
+      text = font.render('{:^30}'.format(self.statusString), 1, self.statusFG, self.statusBG)
       textpos = text.get_rect()
       # print self.name, textpos, textpos.centerx
       textpos.centerx = self.left + self.width/4
@@ -154,7 +150,10 @@ class Player(object):
       self.surface.blit(text, textpos)
 
    def showReminders(self):
-      self.setStatus('Reminder # {:^}'.format(self.reminders))
+      fg = (252, 252, 235)
+      bg = (200, 15, 15)
+      if self.breakTimePenalty > 0:
+         self.setStatus('Penalty: {:^}:00'.format(self.breakTimePenalty / 60), fg, bg)
       
    def update(self):
       self.updateTotal()
@@ -206,8 +205,8 @@ class Player(object):
       self.BreakRect.drawit(self.surface, self.BreakRect.maximum, self.breakTime + self.breakTimePenalty, (0,0,215))
 
       if(self.breakTime == 0 and self.breakTimePenalty > 0):
-         print "breakTime, breakTimePenalty:"
-         print self.breakTime, self.breakTimePenalty
+#         print "breakTime, breakTimePenalty:"
+#         print self.breakTime, self.breakTimePenalty
          
          self.BreakRect.drawit(self.surface, self.breakTimePenalty, 0, (215,0,215))
          
@@ -225,68 +224,96 @@ class Player(object):
          
       self.BreakRect.drawOutline(self.surface)
       self.BreakRect.drawTimes(self.surface)
-      self.showTime(self.BreakRect, self.breakTimeLeft + self.breakTimePenalty)
+      self.showTime(self.BreakRect, self.breakTimeLeft)
       return
         
    def StopAt(self, minutes):
       d = datetime.datetime.now()
       minuet = d.minute
-      print d, "Minutes: ", minuet
+      seconds = d.second
+#      print d, "Minutes: ", minuet, "Seconds: ", seconds
+      
       if minuet > minutes:
          turn = (60 - minuet) + minutes
       else:
          turn = minutes - minuet
 
-      print "Turn =", turn
-      self.AddTurn(turn)
+      tsec = 60 - seconds
+
+#      adjust for case where seconds not = 0, have to subtrat 1 from minutes  
+      if seconds > 0:
+         turn = turn -1
+         
+      m = turn * 60 + tsec
+
+#      print "Turn =", m
+      self.AddTurnSec(m)
 
    def AddTurn(self, minutes):
+      self.AddTurnSec(minutes * 60)
+
+   def AddTurnSec(self, seconds):
+      fg = (200, 200, 200)
+      bg = (20, 225, 20)
       if self.breakTimeLeft > 0:
-         self.setStatus("Wait until break is over!")
+         self.setStatus("Wait until break is over!", fg, bg)
          return
       else:
 #     TimeStarted not currently used
 #         self.TimeStarted = datetime.datetime.now()
-         d = datetime.datetime.now()
-         print d
-         self.turnTime = minutes * 60
+#         d = datetime.datetime.now()
+#         print d
+         self.turnTime = seconds
          self.turnTimeLeft = self.turnTime
          self.reminder = -1      # set to -1 so we can determine that turn just ended, vs. in reminder loop
          self.reminders = 0
          self.breakTimePenalty = 0
          self.increment = 1
          if self.increment > 0:
-            self.setStatus(" Taking turn! ")
+            fg = (200, 200, 200)
+            bg = (20, 20, 225)
+            self.setStatus(" Taking turn! ", fg, bg)
             self.showName(BLUE)
       self.update()
       
    def AddBreak(self, minutes):
+      print "Add break:", minutes, self.breakTimePenalty
       self.breakTime = minutes * 60 + self.breakTimePenalty
       self.breakTimeLeft = minutes * 60 + self.breakTimePenalty
+      print "Break time:", self.breakTime
+      print "Break time Left:", self.breakTimeLeft
       self.reminders = 0
       self.increment = 0
       self.BreakIncrement = 1
       if minutes > 0:
-         self.setStatus(" Taking a break! ")
+         fg = (200, 200, 200)
+         bg = (220, 20, 225)
+         self.setStatus(" Taking a break! ", fg, bg)
          self.showName((250,0,0))
       self.update()
       
    def AddPause(self, minutes):
       if self.breakTimeLeft > 0:
-         self.setStatus("Wait until break is over! ")
+         fg = (200, 200, 200)
+         bg = (220, 20, 225)
+         self.setStatus("Wait until break is over! ", fg, bg)
          return
       if self.increment == 0:
          if self.turnTimeLeft > 0:
             self.reminders = 0
             self.AddBreak(0)
             self.showName(BLUE)
-            self.setStatus(" Taking turn! ")
+            fg = (200, 200, 200)
+            bg = (20, 220, 20)
+            self.setStatus(" Taking turn! ", fg, bg)
             self.increment = 1
          else:
              self.showReminders()
       else:
          self.increment = 0
-         self.setStatus(" Paused! ")
+         fg = (200, 200, 200)
+         bg = (220, 220, 20)
+         self.setStatus(" Paused! ", fg, bg)
          self.showName(DRK_GREEN)
       return
 
@@ -334,9 +361,12 @@ class Player(object):
             # manage reminder beep                  
             if(self.reminder == -1):   # it's set to -1 when turn starts, so turn just ended: say name + "turn over"
                print self.name, "Turn over!"
+               self.two_minute_warning_sound.PlayIt()
                self.name_sound.PlayIt()
                self.turn_over_sound.PlayIt()
-               self.setStatus("Turn over!")
+               fg = (200, 200, 200)
+               bg = (220, 20, 20)
+               self.setStatus("Turn over!", fg, bg)
                self.showName(RED)
                self.reminder = REMINDER_INTERVAL * SPEEDUP  # turn over reminder every 120 seconds
             elif(self.reminder == 0): # now we're counting down reminders, just play a reminder sound less annoying y'know 8^)
@@ -349,14 +379,17 @@ class Player(object):
                         self.name_sound.PlayIt()
                         self.penalty_message_sound.PlayIt()
                         self.breakTimePenalty += 22 * 60
+                        print "Adding 22 minutes"
                      else:
                         self.name_sound.PlayIt()
                         self.reminder_sound.PlayIt()
-                        self.setStatus("For goodness sake!  Break time!")            
-                     print "break penalty for ", self.name, " is ", self.breakTimePenalty
+                        fg = (220, 220, 220)
+                        bg = (250, 20, 20)
+                        self.setStatus(" Break time already!!!", fg, bg)            
+                     # print "break penalty for ", self.name, " is ", self.breakTimePenalty
                      
                self.showReminders()
-               print self.name, "reminders:", self.reminders
+               # print self.name, "reminders:", self.reminders
             else:
                self.reminder -= 1            
                # print self.name, "reminder countdown:", self.reminder
@@ -371,7 +404,9 @@ class Player(object):
             self.name_sound.PlayIt()
 #	Don't play break over sounds, maybe they won't notice
 #            self.break_over_sound.PlayIt()   
-            self.setStatus("Break over!")
+            fg = (220, 220, 220)
+            bg = (20, 250, 20)
+            self.setStatus(" Break over! ", fg, bg)
             self.showName(BLUE)
             self.BreakIncrement = 0
             self.breakTime = 0    # clear the break rect, since break is over

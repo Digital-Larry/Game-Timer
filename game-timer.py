@@ -30,7 +30,7 @@ class App():
       
       pygame.init()
       list = pygame.display.list_modes()
-      print list
+#      print list
       
 #      index = list.index((1824, 984))
 #      print list, index, list[index]
@@ -46,7 +46,7 @@ class App():
          print 'Warning, fonts disabled'
       else:
          fontList = pygame.font.get_fonts()
-         print fontList
+#         print fontList
          fontIndex = 5
          self.font = fontList[fontIndex]
 
@@ -235,7 +235,7 @@ class App():
          # time out of onscreen menu if no key activity for 5 seconds
          if self.MenuTimeOut > 0:
             self.MenuTimeOut -= 1
-            print self.MenuTimeOut
+#            print self.MenuTimeOut
             
          else:
             self.Player1.MenuDepth = 0
