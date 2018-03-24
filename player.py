@@ -286,7 +286,7 @@ class Player(object):
       self.increment = 0
       self.BreakIncrement = 1
       if minutes > 0:
-         fg = (200, 200, 200)
+         fg = BLUE
          bg = (220, 20, 225)
          self.setStatus(" Taking a break! ", fg, bg)
          self.showName((250,0,0))
@@ -303,7 +303,7 @@ class Player(object):
             self.reminders = 0
             self.AddBreak(0)
             self.showName(BLUE)
-            fg = (200, 200, 200)
+            fg = (20, 20, 20)
             bg = (20, 220, 20)
             self.setStatus(" Taking turn! ", fg, bg)
             self.increment = 1
@@ -311,8 +311,8 @@ class Player(object):
              self.showReminders()
       else:
          self.increment = 0
-         fg = (200, 200, 200)
-         bg = (220, 220, 20)
+         fg = (20, 20, 20)
+         bg = (120, 20, 220)
          self.setStatus(" Paused! ", fg, bg)
          self.showName(DRK_GREEN)
       return
